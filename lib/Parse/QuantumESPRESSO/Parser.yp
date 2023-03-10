@@ -41,10 +41,12 @@ card_list: card
             { return { %{$_[1]}, %{$_[2]} } }
          ;
 
-card: card_header nl value_list nl
-        { return { $_[1] => { values => $_[3] } } }
-    | card_header option nl values_list nl
-        { return { $_[1] => { option => $_[2], values => $_[4] } } }
+card: card_header nl
+        { return { $_[1] => { values => [] } } }
+    | card_header option nl
+        { return { $_[1] => { option => $_[2], values => [] } } }
+    | card value_list nl
+        { my( $name ) = keys %{$_[1]}; $_[1]->{$name}{values} = [ @{$_[1]->{$name}{values}}, @{$_[2]} ]; return $_[1] }
     ;
 
 value_list: word
