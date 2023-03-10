@@ -48,9 +48,11 @@ card: card_header nl value_list
     ;
 
 value_list: word
-            { return [ $_[1] ] }
+            { return [ [ $_[1] ] ] }
           | value_list word
-            { return [ @{$_[1]}, @{$_[1]} ] }
+            { push @{$_[1]->[-1]}, $_[2] }
+          | value_list nl word
+            { push @{$_[1]}, [ $_[3] ] }
           ;
 
 %%
@@ -67,7 +69,7 @@ sub _Lexer
         return ( 'namelist_header', $1 );
     } elsif( s/^(ATOMIC_SPECIES|ATOMIC_POSITIONS|K_POINTS|CELL_PARAMETERS|OCCUPATIONS|CONSTRAINTS|ATOMIC_VELOCITIES|ATOMIC_FORCES|ADDITIONAL_K_POINTS|SOLVENTS|HUBBARD)// ) {
         return ( 'card_header', $1 );
-    } elsif( s/^([=/,{}])// ) {
+    } elsif( s/^([=/,{}])(\s)/$2/ ) {
         return ( $1, $1 );
     } elsif( s/^(\S+)// ) {
         return ( 'word', $1 );
