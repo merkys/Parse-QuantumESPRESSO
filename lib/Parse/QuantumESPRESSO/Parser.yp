@@ -80,7 +80,7 @@ sub _Lexer
             return ( 'card_header', $1 );
         } elsif( s/^([=\/,{}])// ) {
             return ( $1, $1 );
-        } elsif( s/^([^\s=]+)// ) {
+        } elsif( s/^'([^']*)'// || s/^([^\s=]+)// ) {
             return ( 'word', $1 );
         } else {
             return ( '', '' );
