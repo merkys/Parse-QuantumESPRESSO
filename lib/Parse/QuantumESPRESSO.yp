@@ -1,0 +1,71 @@
+# Header section
+
+%{
+
+use warnings;
+
+%}
+
+%%
+
+# Rules section
+
+file: namelist_list card_list ;
+
+namelist_list: namelist
+             | namelist_list namelist
+             ;
+
+namelist: namelist_header nl keyvalue_list nl '/' nl ;
+
+keyvalue_list: keyvalue
+             | keyvalue_list ',' keyvalue
+                { return { %{$_[1]}, %{$_[3]} } }
+             | keyvalue_list nl  keyvalue
+                { return { %{$_[1]}, %{$_[3]} } }
+             | keyvalue_list ',' nl keyvalue
+                { return { %{$_[1]}, %{$_[4]} } }
+             ;
+
+keyvalue: word '=' word
+            { return { $_[1] => $_[3] } }
+        ;
+
+card_list: card
+         | card_list card
+         ;
+
+card: card_header nl value_list
+        { return { $_[1] => { values => $_[3] } } }
+    | card_header '{' word '}' nl values_list
+        { return { $_[1] => { parameter => $_[3], values => $_[6] } } }
+    ;
+
+value_list: word
+            { return [ $_[1] ] }
+          | value_list word
+            { return [ @{$_[1]}, @{$_[1]} ] }
+          ;
+
+%%
+
+# Footer section
+
+sub _Lexer
+{
+    my( $self ) = @_;
+
+    if( s/^(\n)// ) {
+        return ( 'nl', $1 );
+    } elsif( s/^&(\S+)// ) {
+        return ( 'namelist_header', $1 );
+    } elsif( s/^(ATOMIC_SPECIES|ATOMIC_POSITIONS|K_POINTS|CELL_PARAMETERS|OCCUPATIONS|CONSTRAINTS|ATOMIC_VELOCITIES|ATOMIC_FORCES|ADDITIONAL_K_POINTS|SOLVENTS|HUBBARD)// ) {
+        return ( 'card_header', $1 );
+    } elsif( s/^([=/,{}])// ) {
+        return ( $1, $1 );
+    } elsif( s/^(\S+)// ) {
+        return ( 'word', $1 );
+    }
+}
+
+1;
