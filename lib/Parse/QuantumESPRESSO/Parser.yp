@@ -76,6 +76,8 @@ sub _Lexer
             return ( $1, $1 );
         } elsif( s/^(\S+)// ) {
             return ( 'word', $1 );
+        } else {
+            return ( '', '' );
         }
     }
 }
