@@ -10,13 +10,18 @@ use warnings;
 
 # Rules section
 
-file: namelist_list card_list ;
+file: namelist_list card_list
+        { return { namelists => $_[1], cards => $_[2] } }
+    ;
 
 namelist_list: namelist
              | namelist_list namelist
+                { return { %{$_[1]}, %{$_[2]} } }
              ;
 
-namelist: namelist_header nl keyvalue_list nl '/' nl ;
+namelist: namelist_header nl keyvalue_list nl '/' nl
+            { return { $_[1] => $_[3] }
+        ;
 
 keyvalue_list: keyvalue
              | keyvalue_list ',' keyvalue
@@ -33,6 +38,7 @@ keyvalue: word '=' word
 
 card_list: card
          | card_list card
+            { return { %{$_[1]}, %{$_[2]} } }
          ;
 
 card: card_header nl value_list
